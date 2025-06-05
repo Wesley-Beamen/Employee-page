@@ -19,6 +19,10 @@
   <p>Already have an account? <a href="login.html">Log in here</a></p>
 
   <script>
+    firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();   // ← initialize Firestore
+
     // 🔁 Replace this with your actual Firebase config from Firebase Console
    const firebaseConfig = {
       apiKey: "AIzaSyCiMmudwxn4rpnfelcVtPdxMuqOnkDpV0c",
