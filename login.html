@@ -1,1 +1,55 @@
-<p>Don't have an account? <a href="signup.html">Sign up here</a></p>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login</title>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+  <h2>Log In</h2>
+  <form id="loginForm">
+    <input type="email" id="email" placeholder="Email" required><br>
+    <input type="password" id="password" placeholder="Password" required><br>
+    <button type="submit">Log In</button>
+  </form>
+
+  <p id="message"></p>
+  <p>Don't have an account? <a href="signup.html">Sign up here</a></p>
+
+  <script>
+    // 🔁 Replace this with your actual Firebase config
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "your-project-id.firebaseapp.com",
+      projectId: "your-project-id",
+      storageBucket: "your-project-id.appspot.com",
+      messagingSenderId: "XXXXXXXXXXXX",
+      appId: "1:XXXXXXXXXXXX:web:xxxxxxxxxxxxxx"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // Login logic
+    document.getElementById("loginForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const message = document.getElementById("message");
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          message.textContent = "✅ Login successful!";
+          // Optional: Redirect to a protected page
+          // window.location.href = "dashboard.html";
+        })
+        .catch(error => {
+          message.textContent = "❌ Login failed: " + error.message;
+        });
+    });
+  </script>
+</body>
+</html>
