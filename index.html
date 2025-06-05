@@ -114,6 +114,10 @@
   </div>
 
   <script>
+    firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();   // ← initialize Firestore
+
     const firebaseConfig = {
       apiKey: "AIzaSyCiMmudwxn4rpnfelcVtPdxMuqOnkDpV0c",
       authDomain: "login-part2-a87ed.firebaseapp.com",
