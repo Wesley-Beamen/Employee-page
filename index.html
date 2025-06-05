@@ -13,16 +13,12 @@
   <style>
     body {
       margin: 0;
-      padding-bottom: 80px; /* space for bottom bar + possible table */
+      padding-bottom: 80px;
       font-family: Arial, sans-serif;
       text-align: center;
     }
+    h1, h2, p { margin: 20px 0; }
 
-    h1, h2, p {
-      margin: 20px 0;
-    }
-
-    /* Bottom Navigation Bar */
     .bottom-bar {
       position: fixed;
       bottom: 0;
@@ -36,7 +32,6 @@
       box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
       z-index: 2;
     }
-
     .bar-button {
       background: none;
       border: none;
@@ -44,13 +39,10 @@
       padding: 10px;
       cursor: pointer;
     }
-
     .bar-button.active {
       color: #007bff;
       font-weight: bold;
     }
-
-    /* Logout Button */
     .logout-button {
       position: absolute;
       top: 10px;
@@ -64,8 +56,6 @@
       cursor: pointer;
       z-index: 2;
     }
-
-    /* Confirmation Dialog + Overlay */
     .overlay {
       display: none;
       position: fixed;
@@ -89,8 +79,6 @@
       margin: 10px;
       padding: 6px 12px;
     }
-
-    /* All Users Table Container */
     #allUsersContainer {
       display: none;
       margin: 20px auto;
@@ -123,15 +111,15 @@
   <h2 id="welcomeText">Loading user info…</h2>
   <p id="pointsRank"></p>
 
-  <!-- Container where the “All Users” table will appear (only for HR) -->
+  <!-- Container for “All Users” (HR only) -->
   <div id="allUsersContainer"></div>
 
-  <!-- Bottom Navigation Bar (Home / Orders / Rank) -->
+  <!-- Bottom Navigation Bar -->
   <div class="bottom-bar" id="bottomBar">
     <button class="bar-button active" onclick="goHome()">Home</button>
     <button class="bar-button" onclick="showOrders()">Orders</button>
     <button class="bar-button" onclick="showRank()">Rank</button>
-    <!-- “All Users” button will be appended here dynamically if rank === "HR" -->
+    <!-- “All Users” button gets appended here if rank === "HR" -->
   </div>
 
   <!-- Logout Confirmation Overlay + Dialog -->
@@ -143,8 +131,8 @@
   </div>
 
   <script>
-    // ─── Replace with your actual Firebase config ─────────────────────────────────
- const firebaseConfig = {
+    // ─── YOUR FIREBASE CONFIG ───────────────────────────────────────────────────
+const firebaseConfig = {
   apiKey: "AIzaSyCiMmudwxn4rpnfelcVtPdxMuqOnkDpV0c",
   authDomain: "login-part2-a87ed.firebaseapp.com",
   projectId: "login-part2-a87ed",
@@ -153,22 +141,23 @@
   appId: "1:905793521152:web:87e6890d2a4c2cda54bae5",
   measurementId: "G-6V6EQE0437"
 };
-    // ───────────────────────────────────────────────────────────────────────────────
+
+    // ─────────────────────────────────────────────────────────────────────────────
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db   = firebase.firestore();
 
-    let currentUserRank = null;  // will hold the signed-in user’s rank
+    let currentUserRank = null;
 
-    // 1) Protect page: if not logged in, redirect
+    // 1) Protect page: only redirect if there truly is no logged-in user
     auth.onAuthStateChanged(user => {
       if (!user) {
-        // Not authenticated → send to login page
+        // No user → send to login
         window.location.href = "login.html";
       } else {
-        // Authenticated → fetch this user’s points & rank
+        // User is logged in → fetch their points & rank
         const uid = user.uid;
         const email = user.email;
 
@@ -180,30 +169,25 @@
               const rk   = data.rank;
               currentUserRank = rk;
 
-              // Show welcome + points/rank
-              document.getElementById("welcomeText").textContent =
-                `Hello, ${email}!`;
-              document.getElementById("pointsRank").textContent =
-                `🟢 Points: ${pts} — 🏅 Rank: ${rk}`;
+              document.getElementById("welcomeText").textContent = `Hello, ${email}!`;
+              document.getElementById("pointsRank").textContent = `🟢 Points: ${pts} — 🏅 Rank: ${rk}`;
 
-              // If rank is exactly "HR", add the “All Users” tab
+              // If HR, show “All Users” tab
               if (rk === "HR") {
                 addAllUsersButton();
               }
             } else {
-              document.getElementById("welcomeText").textContent =
-                `Hello, ${email}. (Profile not found.)`;
+              document.getElementById("welcomeText").textContent = `Hello, ${email}. (Profile not found.)`;
             }
           })
           .catch(err => {
             console.error("Error fetching user profile:", err);
-            document.getElementById("welcomeText").textContent =
-              `Hello, ${email}. (Could not load points/rank.)`;
+            document.getElementById("welcomeText").textContent = `Hello, ${email}. (Could not load points/rank.)`;
           });
       }
     });
 
-    // 2) Dynamically insert the “All Users” button in the bottom bar
+    // 2) Dynamically add “All Users” button if rank === "HR"
     function addAllUsersButton() {
       const bottomBar = document.getElementById("bottomBar");
       const btn = document.createElement("button");
@@ -213,13 +197,12 @@
       bottomBar.appendChild(btn);
     }
 
-    // 3) “All Users” click‐handler (only visible if rank === "HR")
+    // 3) Fetch & show all users sorted by points (HR only)
     function showAllUsers() {
       const container = document.getElementById("allUsersContainer");
       container.innerHTML = "<p>Loading all users…</p>";
       container.style.display = "block";
 
-      // Fetch every document in "users" collection, ordered by points descending
       db.collection("users")
         .orderBy("points", "desc")
         .get()
@@ -229,7 +212,6 @@
             return;
           }
 
-          // Build HTML table
           let html = `
             <table>
               <thead>
@@ -283,9 +265,8 @@
       });
     }
 
-    // 5) Bottom nav stubs (you can replace these with real navigation later)
+    // 5) Bottom-nav stubs
     function goHome() {
-      // Already on Home; you can scroll up or do nothing.
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
     function showOrders() {
@@ -297,4 +278,3 @@
   </script>
 </body>
 </html>
-
