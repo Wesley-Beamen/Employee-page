@@ -13,7 +13,7 @@
   <style>
     body {
       margin: 0;
-      padding-bottom: 80px; /* extra space for bottom bar + possible table */
+      padding-bottom: 80px; /* space for bottom bar + possible table */
       font-family: Arial, sans-serif;
       text-align: center;
     }
@@ -131,7 +131,7 @@
     <button class="bar-button active" onclick="goHome()">Home</button>
     <button class="bar-button" onclick="showOrders()">Orders</button>
     <button class="bar-button" onclick="showRank()">Rank</button>
-    <!-- We will dynamically insert an “All Users” button here if rank === "HR" -->
+    <!-- “All Users” button will be appended here dynamically if rank === "HR" -->
   </div>
 
   <!-- Logout Confirmation Overlay + Dialog -->
@@ -145,14 +145,13 @@
   <script>
     // ─── Replace with your actual Firebase config ─────────────────────────────────
     const firebaseConfig = {
-  apiKey: "AIzaSyCiMmudwxn4rpnfelcVtPdxMuqOnkDpV0c",
-  authDomain: "login-part2-a87ed.firebaseapp.com",
-  projectId: "login-part2-a87ed",
-  storageBucket: "login-part2-a87ed.firebasestorage.app",
-  messagingSenderId: "905793521152",
-  appId: "1:905793521152:web:87e6890d2a4c2cda54bae5",
-  measurementId: "G-6V6EQE0437"
-};
+      apiKey: "YOUR_API_KEY",
+      authDomain: "your-project-id.firebaseapp.com",
+      projectId: "your-project-id",
+      storageBucket: "your-project-id.appspot.com",
+      messagingSenderId: "XXXXXXXXXXXX",
+      appId: "1:XXXXXXXXXXXX:web:xxxxxxxxxxxxxx"
+    };
     // ───────────────────────────────────────────────────────────────────────────────
 
     // Initialize Firebase
@@ -219,8 +218,10 @@
       container.innerHTML = "<p>Loading all users…</p>";
       container.style.display = "block";
 
-      // Fetch every document in "users" collection
-      db.collection("users").get()
+      // Fetch every document in "users" collection, ordered by points descending
+      db.collection("users")
+        .orderBy("points", "desc")
+        .get()
         .then(querySnapshot => {
           if (querySnapshot.empty) {
             container.innerHTML = "<p>No users found.</p>";
@@ -295,3 +296,4 @@
   </script>
 </body>
 </html>
+
