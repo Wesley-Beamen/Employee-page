@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>Login</title>
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -18,17 +19,16 @@
   <p>Don't have an account? <a href="signup.html">Sign up here</a></p>
 
   <script>
-    // 🔁 Replace this with your actual Firebase config
+    // ─── Replace with your actual Firebase config ─────────────────────────────────
     const firebaseConfig = {
-      apiKey: "AIzaSyCiMmudwxn4rpnfelcVtPdxMuqOnkDpV0c",
-      authDomain: "login-part2-a87ed.firebaseapp.com",
-      projectId: "login-part2-a87ed",
-      storageBucket: "login-part2-a87ed.firebasestorage.app",
-      messagingSenderId: "905793521152",
-      appId: "1:905793521152:web:87e6890d2a4c2cda54bae5",
-      measurementId: "G-6V6EQE0437"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "your-project-id.firebaseapp.com",
+      projectId: "your-project-id",
+      storageBucket: "your-project-id.appspot.com",
+      messagingSenderId: "XXXXXXXXXXXX",
+      appId: "1:XXXXXXXXXXXX:web:xxxxxxxxxxxxxx"
     };
-
+    // ───────────────────────────────────────────────────────────────────────────────
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
@@ -44,9 +44,8 @@
 
       auth.signInWithEmailAndPassword(email, password)
         .then(userCredential => {
-          message.textContent = "✅ Login successful!";
-          // Optional: Redirect to a protected page
-          // window.location.href = "dashboard.html";
+          // Redirect to index.html on successful login
+          window.location.href = "index.html";
         })
         .catch(error => {
           message.textContent = "❌ Login failed: " + error.message;
