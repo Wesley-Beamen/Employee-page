@@ -13,7 +13,7 @@
   <style>
     body {
       margin: 0;
-      padding-bottom: 60px; /* space for the bottom bar */
+      padding-bottom: 80px; /* extra space for bottom bar + possible table */
       font-family: Arial, sans-serif;
       text-align: center;
     }
@@ -22,6 +22,7 @@
       margin: 20px 0;
     }
 
+    /* Bottom Navigation Bar */
     .bottom-bar {
       position: fixed;
       bottom: 0;
@@ -33,6 +34,7 @@
       justify-content: space-around;
       align-items: center;
       box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+      z-index: 2;
     }
 
     .bar-button {
@@ -48,6 +50,7 @@
       font-weight: bold;
     }
 
+    /* Logout Button */
     .logout-button {
       position: absolute;
       top: 10px;
@@ -59,42 +62,79 @@
       font-size: 14px;
       border-radius: 5px;
       cursor: pointer;
+      z-index: 2;
     }
 
+    /* Confirmation Dialog + Overlay */
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.3);
+      z-index: 5;
+    }
     .confirm-box {
       display: none;
       position: fixed;
-      top: 40%;
-      left: 50%;
+      top: 40%; left: 50%;
       transform: translate(-50%, -50%);
       background: white;
       border: 1px solid #ccc;
       padding: 20px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
       z-index: 10;
     }
-
     .confirm-box button {
       margin: 10px;
       padding: 6px 12px;
     }
 
-    .overlay {
+    /* All Users Table Container */
+    #allUsersContainer {
       display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
+      margin: 20px auto;
+      width: 90%;
+      max-width: 600px;
+      overflow-x: auto;
+    }
+    #allUsersContainer table {
       width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.3);
-      z-index: 5;
+      border-collapse: collapse;
+    }
+    #allUsersContainer th,
+    #allUsersContainer td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    #allUsersContainer th {
+      background-color: #f7f7f7;
     }
   </style>
 </head>
 <body>
 
-  <!-- Logout Button + Confirmation Dialog / Overlay -->
+  <!-- Logout Button -->
   <button class="logout-button" onclick="showLogoutConfirm()">Logout</button>
+
+  <!-- Welcome + Points/Rank Area -->
+  <h1>Welcome to Your Dashboard</h1>
+  <h2 id="welcomeText">Loading user info…</h2>
+  <p id="pointsRank"></p>
+
+  <!-- Container where the “All Users” table will appear (only for HR) -->
+  <div id="allUsersContainer"></div>
+
+  <!-- Bottom Navigation Bar (Home / Orders / Rank) -->
+  <div class="bottom-bar" id="bottomBar">
+    <button class="bar-button active" onclick="goHome()">Home</button>
+    <button class="bar-button" onclick="showOrders()">Orders</button>
+    <button class="bar-button" onclick="showRank()">Rank</button>
+    <!-- We will dynamically insert an “All Users” button here if rank === "HR" -->
+  </div>
+
+  <!-- Logout Confirmation Overlay + Dialog -->
   <div class="overlay" id="overlay"></div>
   <div class="confirm-box" id="confirmBox">
     <p>Are you sure you want to logout?</p>
@@ -102,21 +142,9 @@
     <button onclick="hideLogoutConfirm()">No</button>
   </div>
 
-  <!-- Welcome + Points/Rank Area -->
-  <h1>Welcome to Your Dashboard</h1>
-  <h2 id="welcomeText">Loading user info…</h2>
-  <p id="pointsRank"> </p>
-
-  <!-- Bottom Navigation Bar -->
-  <div class="bottom-bar">
-    <button class="bar-button active" onclick="goHome()">Home</button>
-    <button class="bar-button" onclick="showOrders()">Orders</button>
-    <button class="bar-button" onclick="showRank()">Rank</button>
-  </div>
-
   <script>
     // ─── Replace with your actual Firebase config ─────────────────────────────────
-const firebaseConfig = {
+    const firebaseConfig = {
   apiKey: "AIzaSyCiMmudwxn4rpnfelcVtPdxMuqOnkDpV0c",
   authDomain: "login-part2-a87ed.firebaseapp.com",
   projectId: "login-part2-a87ed",
@@ -132,31 +160,37 @@ const firebaseConfig = {
     const auth = firebase.auth();
     const db   = firebase.firestore();
 
-    // 1) Protect page: redirect if not logged in
+    let currentUserRank = null;  // will hold the signed-in user’s rank
+
+    // 1) Protect page: if not logged in, redirect
     auth.onAuthStateChanged(user => {
       if (!user) {
-        // Not signed in → send to login page
+        // Not authenticated → send to login page
         window.location.href = "login.html";
       } else {
-        // Signed in → fetch this user's points & rank
+        // Authenticated → fetch this user’s points & rank
         const uid = user.uid;
-        const email = user.email; // optional
+        const email = user.email;
 
-        // Read Firestore doc under "users/{uid}"
         db.collection("users").doc(uid).get()
           .then(docSnap => {
             if (docSnap.exists) {
               const data = docSnap.data();
               const pts  = data.points;
               const rk   = data.rank;
+              currentUserRank = rk;
 
-              // Show welcome message + points/rank
+              // Show welcome + points/rank
               document.getElementById("welcomeText").textContent =
                 `Hello, ${email}!`;
               document.getElementById("pointsRank").textContent =
                 `🟢 Points: ${pts} — 🏅 Rank: ${rk}`;
+
+              // If rank is exactly "HR", add the “All Users” tab
+              if (rk === "HR") {
+                addAllUsersButton();
+              }
             } else {
-              // No doc under "users/{uid}"? Likely an error.
               document.getElementById("welcomeText").textContent =
                 `Hello, ${email}. (Profile not found.)`;
             }
@@ -169,7 +203,68 @@ const firebaseConfig = {
       }
     });
 
-    // 2) Logout logic + confirm dialog
+    // 2) Dynamically insert the “All Users” button in the bottom bar
+    function addAllUsersButton() {
+      const bottomBar = document.getElementById("bottomBar");
+      const btn = document.createElement("button");
+      btn.className = "bar-button";
+      btn.textContent = "All Users";
+      btn.onclick = showAllUsers;
+      bottomBar.appendChild(btn);
+    }
+
+    // 3) “All Users” click‐handler (only visible if rank === "HR")
+    function showAllUsers() {
+      const container = document.getElementById("allUsersContainer");
+      container.innerHTML = "<p>Loading all users…</p>";
+      container.style.display = "block";
+
+      // Fetch every document in "users" collection
+      db.collection("users").get()
+        .then(querySnapshot => {
+          if (querySnapshot.empty) {
+            container.innerHTML = "<p>No users found.</p>";
+            return;
+          }
+
+          // Build HTML table
+          let html = `
+            <table>
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Points</th>
+                  <th>Rank</th>
+                </tr>
+              </thead>
+              <tbody>
+          `;
+          querySnapshot.forEach(doc => {
+            const data = doc.data();
+            const email = data.email || "(no email)";
+            const pts   = data.points;
+            const rk    = data.rank;
+            html += `
+              <tr>
+                <td>${email}</td>
+                <td>${pts}</td>
+                <td>${rk}</td>
+              </tr>
+            `;
+          });
+          html += `
+              </tbody>
+            </table>
+          `;
+          container.innerHTML = html;
+        })
+        .catch(error => {
+          console.error("Error fetching all users:", error);
+          container.innerHTML = "<p>Error loading users.</p>";
+        });
+    }
+
+    // 4) Logout logic + confirm dialog
     function showLogoutConfirm() {
       document.getElementById("confirmBox").style.display = "block";
       document.getElementById("overlay").style.display    = "block";
@@ -186,9 +281,10 @@ const firebaseConfig = {
       });
     }
 
-    // 3) Bottom nav stubs
+    // 5) Bottom nav stubs (you can replace these with real navigation later)
     function goHome() {
-      alert("You are already on the Home page.");
+      // Already on Home; you can scroll up or do nothing.
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
     function showOrders() {
       alert("Orders section will appear here.");
@@ -199,4 +295,3 @@ const firebaseConfig = {
   </script>
 </body>
 </html>
-
