@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>Sign Up</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-
 </head>
 <body>
   <h2>Create an Account</h2>
@@ -19,42 +22,52 @@
   <p>Already have an account? <a href="login.html">Log in here</a></p>
 
   <script>
-    firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db   = firebase.firestore();   // ← initialize Firestore
-
-    // 🔁 Replace this with your actual Firebase config from Firebase Console
-   const firebaseConfig = {
-      apiKey: "AIzaSyCiMmudwxn4rpnfelcVtPdxMuqOnkDpV0c",
-      authDomain: "login-part2-a87ed.firebaseapp.com",
-      projectId: "login-part2-a87ed",
-      storageBucket: "login-part2-a87ed.firebasestorage.app",
-      messagingSenderId: "905793521152",
-      appId: "1:905793521152:web:87e6890d2a4c2cda54bae5",
-      measurementId: "G-6V6EQE0437"
-    };
-
+    // ─── Replace with your actual Firebase config ─────────────────────────────────
+    const firebaseConfig = {
+  apiKey: "AIzaSyCiMmudwxn4rpnfelcVtPdxMuqOnkDpV0c",
+  authDomain: "login-part2-a87ed.firebaseapp.com",
+  projectId: "login-part2-a87ed",
+  storageBucket: "login-part2-a87ed.firebasestorage.app",
+  messagingSenderId: "905793521152",
+  appId: "1:905793521152:web:87e6890d2a4c2cda54bae5",
+  measurementId: "G-6V6EQE0437"
+};
+    // ───────────────────────────────────────────────────────────────────────────────
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    const db   = firebase.firestore();
 
-    // Sign-up logic
     document.getElementById("signupForm").addEventListener("submit", function(e) {
       e.preventDefault();
 
-      const email = document.getElementById("email").value;
+      const email    = document.getElementById("email").value;
       const password = document.getElementById("password").value;
-      const message = document.getElementById("message");
+      const message  = document.getElementById("message");
 
+      // 1) Create new Auth user
       auth.createUserWithEmailAndPassword(email, password)
         .then(userCredential => {
-          message.textContent = "✅ Account created successfully!";
-          // Optionally: Redirect to login.html or another page
+          const user = userCredential.user;
+          const uid  = user.uid;
+
+          // 2) Create a Firestore document for this user
+          //    We set initial points and rank here:
+          return db.collection("users").doc(uid).set({
+            email: user.email,      // optional: store email for quick lookup
+            points: 0,              // initial points
+            rank: "Beginner"        // initial rank
+          });
+        })
+        .then(() => {
+          message.textContent = "✅ Account created & profile initialized!";
+          // Optionally redirect to login page:
           // window.location.href = "login.html";
         })
         .catch(error => {
           message.textContent = "❌ Error: " + error.message;
+          console.error(error);
         });
     });
   </script>
