@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sign Up</title>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+  <h2>Create an Account</h2>
+  <form id="signupForm">
+    <input type="email" id="email" placeholder="Email" required><br>
+    <input type="password" id="password" placeholder="Password" required><br>
+    <button type="submit">Sign Up</button>
+  </form>
+
+  <p id="message"></p>
+  <p>Already have an account? <a href="login.html">Log in here</a></p>
+
+  <script>
+    // 🔁 Replace this with your actual Firebase config from Firebase Console
+   const firebaseConfig = {
+      apiKey: "AIzaSyCiMmudwxn4rpnfelcVtPdxMuqOnkDpV0c",
+      authDomain: "login-part2-a87ed.firebaseapp.com",
+      projectId: "login-part2-a87ed",
+      storageBucket: "login-part2-a87ed.firebasestorage.app",
+      messagingSenderId: "905793521152",
+      appId: "1:905793521152:web:87e6890d2a4c2cda54bae5",
+      measurementId: "G-6V6EQE0437"
+    };
+
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // Sign-up logic
+    document.getElementById("signupForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const message = document.getElementById("message");
+
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          message.textContent = "✅ Account created successfully!";
+          // Optionally: Redirect to login.html or another page
+          // window.location.href = "login.html";
+        })
+        .catch(error => {
+          message.textContent = "❌ Error: " + error.message;
+        });
+    });
+  </script>
+</body>
+</html>
