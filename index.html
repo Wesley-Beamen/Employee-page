@@ -4,21 +4,22 @@
   <meta charset="UTF-8">
   <title>Home Page</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
   <style>
     body {
       margin: 0;
-      padding-bottom: 60px;
+      padding-bottom: 60px; /* space for the bottom bar */
       font-family: Arial, sans-serif;
       text-align: center;
     }
 
-    h1 {
-      margin-top: 50px;
+    h1, h2, p {
+      margin: 20px 0;
     }
 
     .bottom-bar {
@@ -92,10 +93,19 @@
 </head>
 <body>
 
+  <!-- Logout Button + Confirmation Dialog / Overlay -->
   <button class="logout-button" onclick="showLogoutConfirm()">Logout</button>
+  <div class="overlay" id="overlay"></div>
+  <div class="confirm-box" id="confirmBox">
+    <p>Are you sure you want to logout?</p>
+    <button onclick="logout()">Yes</button>
+    <button onclick="hideLogoutConfirm()">No</button>
+  </div>
 
-  <h1>Welcome to the Home Page</h1>
-  <p>This is your main dashboard.</p>
+  <!-- Welcome + Points/Rank Area -->
+  <h1>Welcome to Your Dashboard</h1>
+  <h2 id="welcomeText">Loading user info…</h2>
+  <p id="pointsRank"> </p>
 
   <!-- Bottom Navigation Bar -->
   <div class="bottom-bar">
@@ -104,63 +114,70 @@
     <button class="bar-button" onclick="showRank()">Rank</button>
   </div>
 
-  <!-- Overlay and Confirmation Dialog -->
-  <div class="overlay" id="overlay"></div>
-
-  <div class="confirm-box" id="confirmBox">
-    <p>Are you sure you want to logout?</p>
-    <button onclick="logout()">Yes</button>
-    <button onclick="hideLogoutConfirm()">No</button>
-  </div>
-
   <script>
-    firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db   = firebase.firestore();   // ← initialize Firestore
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCiMmudwxn4rpnfelcVtPdxMuqOnkDpV0c",
-      authDomain: "login-part2-a87ed.firebaseapp.com",
-      projectId: "login-part2-a87ed",
-      storageBucket: "login-part2-a87ed.firebasestorage.app",
-      messagingSenderId: "905793521152",
-      appId: "1:905793521152:web:87e6890d2a4c2cda54bae5",
-      measurementId: "G-6V6EQE0437"
-    };
+    // ─── Replace with your actual Firebase config ─────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyCiMmudwxn4rpnfelcVtPdxMuqOnkDpV0c",
+  authDomain: "login-part2-a87ed.firebaseapp.com",
+  projectId: "login-part2-a87ed",
+  storageBucket: "login-part2-a87ed.firebasestorage.app",
+  messagingSenderId: "905793521152",
+  appId: "1:905793521152:web:87e6890d2a4c2cda54bae5",
+  measurementId: "G-6V6EQE0437"
+};
+    // ───────────────────────────────────────────────────────────────────────────────
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    const db   = firebase.firestore();
 
-    // Protect page: redirect if not logged in
+    // 1) Protect page: redirect if not logged in
     auth.onAuthStateChanged(user => {
       if (!user) {
+        // Not signed in → send to login page
         window.location.href = "login.html";
+      } else {
+        // Signed in → fetch this user's points & rank
+        const uid = user.uid;
+        const email = user.email; // optional
+
+        // Read Firestore doc under "users/{uid}"
+        db.collection("users").doc(uid).get()
+          .then(docSnap => {
+            if (docSnap.exists) {
+              const data = docSnap.data();
+              const pts  = data.points;
+              const rk   = data.rank;
+
+              // Show welcome message + points/rank
+              document.getElementById("welcomeText").textContent =
+                `Hello, ${email}!`;
+              document.getElementById("pointsRank").textContent =
+                `🟢 Points: ${pts} — 🏅 Rank: ${rk}`;
+            } else {
+              // No doc under "users/{uid}"? Likely an error.
+              document.getElementById("welcomeText").textContent =
+                `Hello, ${email}. (Profile not found.)`;
+            }
+          })
+          .catch(err => {
+            console.error("Error fetching user profile:", err);
+            document.getElementById("welcomeText").textContent =
+              `Hello, ${email}. (Could not load points/rank.)`;
+          });
       }
     });
 
-    function goHome() {
-      alert("You are already on the Home page.");
-    }
-
-    function showOrders() {
-      alert("Orders section will appear here.");
-    }
-
-    function showRank() {
-      alert("Rank section will be added soon.");
-    }
-
+    // 2) Logout logic + confirm dialog
     function showLogoutConfirm() {
       document.getElementById("confirmBox").style.display = "block";
-      document.getElementById("overlay").style.display = "block";
+      document.getElementById("overlay").style.display    = "block";
     }
-
     function hideLogoutConfirm() {
       document.getElementById("confirmBox").style.display = "none";
-      document.getElementById("overlay").style.display = "none";
+      document.getElementById("overlay").style.display    = "none";
     }
-
     function logout() {
       auth.signOut().then(() => {
         window.location.href = "login.html";
@@ -168,7 +185,18 @@ const db   = firebase.firestore();   // ← initialize Firestore
         alert("Error logging out: " + error.message);
       });
     }
-  </script>
 
+    // 3) Bottom nav stubs
+    function goHome() {
+      alert("You are already on the Home page.");
+    }
+    function showOrders() {
+      alert("Orders section will appear here.");
+    }
+    function showRank() {
+      alert("Rank section will be added soon.");
+    }
+  </script>
 </body>
 </html>
+
