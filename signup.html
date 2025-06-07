@@ -9,32 +9,103 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: url('landscape-background.jpg') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .form-container {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      color: #2d5f2e;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #message {
+      margin-top: 10px;
+      color: #cc0000;
+    }
+
+    a {
+      color: #4CAF50;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
-  <h2>Create an Account</h2>
-  <form id="signupForm">
-    <input type="email" id="email" placeholder="Email" required><br>
-    <input type="password" id="password" placeholder="Password" required><br>
-    <button type="submit">Sign Up</button>
-  </form>
+  <div class="form-container">
+    <h2>Create an Account</h2>
+    <form id="signupForm">
+      <input type="email" id="email" placeholder="Email" required><br>
+      <input type="password" id="password" placeholder="Password" required><br>
+      <button type="submit">Sign Up</button>
+    </form>
 
-  <p id="message"></p>
-  <p>Already have an account? <a href="login.html">Log in here</a></p>
+    <p id="message"></p>
+    <p>Already have an account? <a href="login.html">Log in here</a></p>
+  </div>
 
   <script>
-    // ─── Replace with your actual Firebase config ─────────────────────────────────
     const firebaseConfig = {
-  apiKey: "AIzaSyCiMmudwxn4rpnfelcVtPdxMuqOnkDpV0c",
-  authDomain: "login-part2-a87ed.firebaseapp.com",
-  projectId: "login-part2-a87ed",
-  storageBucket: "login-part2-a87ed.firebasestorage.app",
-  messagingSenderId: "905793521152",
-  appId: "1:905793521152:web:87e6890d2a4c2cda54bae5",
-  measurementId: "G-6V6EQE0437"
-};
-    // ───────────────────────────────────────────────────────────────────────────────
+      apiKey: "AIzaSyCiMmudwxn4rpnfelcVtPdxMuqOnkDpV0c",
+      authDomain: "login-part2-a87ed.firebaseapp.com",
+      projectId: "login-part2-a87ed",
+      storageBucket: "login-part2-a87ed.firebasestorage.app",
+      messagingSenderId: "905793521152",
+      appId: "1:905793521152:web:87e6890d2a4c2cda54bae5",
+      measurementId: "G-6V6EQE0437"
+    };
 
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db   = firebase.firestore();
@@ -46,26 +117,25 @@
       const password = document.getElementById("password").value;
       const message  = document.getElementById("message");
 
-      // 1) Create new Auth user
       auth.createUserWithEmailAndPassword(email, password)
         .then(userCredential => {
           const user = userCredential.user;
           const uid  = user.uid;
 
-          // 2) Create a Firestore document for this user
-          //    We set initial points and rank here:
           return db.collection("users").doc(uid).set({
-            email: user.email,      // optional: store email for quick lookup
-            points: 0,              // initial points
-            rank: "Beginner"        // initial rank
+            email: user.email,
+            points: 0,
+            rank: "Beginner"
           });
         })
         .then(() => {
+          message.style.color = "green";
           message.textContent = "✅ Account created & profile initialized!";
-          // Optionally redirect to login page:
+          // Optional redirect
           // window.location.href = "login.html";
         })
         .catch(error => {
+          message.style.color = "red";
           message.textContent = "❌ Error: " + error.message;
           console.error(error);
         });
