@@ -2,279 +2,201 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Employee Home Page</title>
+  <title>Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-
   <style>
     body {
       margin: 0;
-      padding-bottom: 80px;
       font-family: Arial, sans-serif;
-      text-align: center;
+      background-color: #f5f5f5;
+      padding-bottom: 80px;
     }
-    h1, h2, p { margin: 20px 0; }
-
-    .bottom-bar {
+    .container {
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    #logout {
       position: fixed;
-      bottom: 0;
-      width: 100%;
-      height: 60px;
-      background-color: #f0f0f0;
-      border-top: 1px solid #ccc;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-      z-index: 2;
-    }
-    .bar-button {
-      background: none;
-      border: none;
-      font-size: 16px;
-      padding: 10px;
-      cursor: pointer;
-    }
-    .bar-button.active {
-      color: #007bff;
-      font-weight: bold;
-    }
-    .logout-button {
-      position: absolute;
       top: 10px;
       right: 10px;
       background-color: #ff4d4d;
-      border: none;
       color: white;
+      border: none;
       padding: 8px 12px;
-      font-size: 14px;
       border-radius: 5px;
       cursor: pointer;
-      z-index: 2;
     }
-    .overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.3);
-      z-index: 5;
+    #logout:hover {
+      background-color: #ff1a1a;
     }
-    .confirm-box {
-      display: none;
-      position: fixed;
-      top: 40%; left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      border: 1px solid #ccc;
-      padding: 20px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.2);
-      z-index: 10;
-    }
-    .confirm-box button {
-      margin: 10px;
-      padding: 6px 12px;
-    }
-    #allUsersContainer {
-      display: none;
-      margin: 20px auto;
-      width: 90%;
-      max-width: 600px;
-      overflow-x: auto;
-    }
-    #allUsersContainer table {
+    table {
       width: 100%;
       border-collapse: collapse;
+      margin-top: 20px;
+      background-color: white;
     }
-    #allUsersContainer th,
-    #allUsersContainer td {
-      border: 1px solid #ccc;
-      padding: 8px;
+    th, td {
+      padding: 12px;
       text-align: left;
+      border-bottom: 1px solid #ddd;
     }
-    #allUsersContainer th {
-      background-color: #f7f7f7;
+    th {
+      background-color: #4CAF50;
+      color: white;
+    }
+    #bottom-nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background-color: #ffffff;
+      border-top: 1px solid #ccc;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    }
+    #bottom-nav button {
+      background: none;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #confirm-logout {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    #confirm-box {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    #confirm-box button {
+      margin: 10px;
+      padding: 10px 20px;
     }
   </style>
 </head>
 <body>
+  <div class="container" id="content"></div>
 
-  <!-- Logout Button -->
-  <button class="logout-button" onclick="showLogoutConfirm()">Logout</button>
+  <button id="logout">Logout</button>
 
-  <!-- Welcome + Points/Rank Area -->
-  <h1>Welcome to Your Dashboard</h1>
-  <h2 id="welcomeText">Loading user info…</h2>
-  <p id="pointsRank"></p>
-
-  <!-- Container for “All Users” (HR only) -->
-  <div id="allUsersContainer"></div>
-
-  <!-- Bottom Navigation Bar -->
-  <div class="bottom-bar" id="bottomBar">
-    <button class="bar-button active" onclick="goHome()">Home</button>
-    <button class="bar-button" onclick="showOrders()">Orders</button>
-    <button class="bar-button" onclick="showRank()">Rank</button>
-    <!-- “All Users” button gets appended here if rank === "HR" -->
+  <div id="bottom-nav">
+    <button onclick="alert('Home Clicked')">Home</button>
+    <button onclick="alert('Orders Clicked')">Orders</button>
+    <button onclick="alert('Rank Clicked')">Rank</button>
+    <button id="hr-users-btn" style="display: none;" onclick="toggleUserTable()">All Users</button>
   </div>
 
-  <!-- Logout Confirmation Overlay + Dialog -->
-  <div class="overlay" id="overlay"></div>
-  <div class="confirm-box" id="confirmBox">
-    <p>Are you sure you want to logout?</p>
-    <button onclick="logout()">Yes</button>
-    <button onclick="hideLogoutConfirm()">No</button>
+  <div id="confirm-logout">
+    <div id="confirm-box">
+      <p>Are you sure you want to logout?</p>
+      <button onclick="confirmLogout()">Yes</button>
+      <button onclick="cancelLogout()">No</button>
+    </div>
   </div>
 
-  <script>
-    // ─── YOUR FIREBASE CONFIG ───────────────────────────────────────────────────
-const firebaseConfig = {
-  apiKey: "AIzaSyCiMmudwxn4rpnfelcVtPdxMuqOnkDpV0c",
-  authDomain: "login-part2-a87ed.firebaseapp.com",
-  projectId: "login-part2-a87ed",
-  storageBucket: "login-part2-a87ed.firebasestorage.app",
-  messagingSenderId: "905793521152",
-  appId: "1:905793521152:web:87e6890d2a4c2cda54bae5",
-  measurementId: "G-6V6EQE0437"
-};
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // ─────────────────────────────────────────────────────────────────────────────
+    const firebaseConfig = {
+      apiKey: "AIzaSyDyoHzL23JS9wrHZv6CCcN8e61qOUmVIaI",
+      authDomain: "login-form-62b87.firebaseapp.com",
+      projectId: "login-form-62b87",
+      storageBucket: "login-form-62b87.appspot.com",
+      messagingSenderId: "497746343818",
+      appId: "1:497746343818:web:b49d7fa30c563131ad0c5e",
+      measurementId: "G-5NS1ZRV0ZB"
+    };
 
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db   = firebase.firestore();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    let currentUserRank = null;
+    const content = document.getElementById('content');
+    const logoutBtn = document.getElementById('logout');
+    const confirmLogoutDiv = document.getElementById('confirm-logout');
+    const hrUsersBtn = document.getElementById('hr-users-btn');
 
-    // 1) Protect page: only redirect if there truly is no logged-in user
-    auth.onAuthStateChanged(user => {
-      if (!user) {
-        // No user → send to login
-        window.location.href = "login.html";
+    let currentUserEmail = null;
+    let isHR = false;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUserEmail = user.email;
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          const points = userData.points || 0;
+          const rank = userData.rank || "Employee";
+          isHR = rank === "HR";
+
+          content.innerHTML = `
+            <h1>Welcome, ${user.email}</h1>
+            <p>Points: ${points}</p>
+            <p>Rank: ${rank}</p>
+            <div id="user-table" style="display: none;"></div>
+          `;
+
+          if (isHR) {
+            hrUsersBtn.style.display = "inline-block";
+          }
+        } else {
+          content.innerHTML = "<p>User data not found.</p>";
+        }
       } else {
-        // User is logged in → fetch their points & rank
-        const uid = user.uid;
-        const email = user.email;
-
-        db.collection("users").doc(uid).get()
-          .then(docSnap => {
-            if (docSnap.exists) {
-              const data = docSnap.data();
-              const pts  = data.points;
-              const rk   = data.rank;
-              currentUserRank = rk;
-
-              document.getElementById("welcomeText").textContent = `Hello, ${email}!`;
-              document.getElementById("pointsRank").textContent = `🟢 Points: ${pts} — 🏅 Rank: ${rk}`;
-
-              // If HR, show “All Users” tab
-              if (rk === "HR") {
-                addAllUsersButton();
-              }
-            } else {
-              document.getElementById("welcomeText").textContent = `Hello, ${email}. (Profile not found.)`;
-            }
-          })
-          .catch(err => {
-            console.error("Error fetching user profile:", err);
-            document.getElementById("welcomeText").textContent = `Hello, ${email}. (Could not load points/rank.)`;
-          });
+        window.location.href = "login.html";
       }
     });
 
-    // 2) Dynamically add “All Users” button if rank === "HR"
-    function addAllUsersButton() {
-      const bottomBar = document.getElementById("bottomBar");
-      const btn = document.createElement("button");
-      btn.className = "bar-button";
-      btn.textContent = "All Users";
-      btn.onclick = showAllUsers;
-      bottomBar.appendChild(btn);
-    }
+    logoutBtn.addEventListener("click", () => {
+      confirmLogoutDiv.style.display = "flex";
+    });
 
-    // 3) Fetch & show all users sorted by points (HR only)
-    function showAllUsers() {
-      const container = document.getElementById("allUsersContainer");
-      container.innerHTML = "<p>Loading all users…</p>";
-      container.style.display = "block";
-
-      db.collection("users")
-        .orderBy("points", "desc")
-        .get()
-        .then(querySnapshot => {
-          if (querySnapshot.empty) {
-            container.innerHTML = "<p>No users found.</p>";
-            return;
-          }
-
-          let html = `
-            <table>
-              <thead>
-                <tr>
-                  <th>Email</th>
-                  <th>Points</th>
-                  <th>Rank</th>
-                </tr>
-              </thead>
-              <tbody>
-          `;
-          querySnapshot.forEach(doc => {
-            const data = doc.data();
-            const email = data.email || "(no email)";
-            const pts   = data.points;
-            const rk    = data.rank;
-            html += `
-              <tr>
-                <td>${email}</td>
-                <td>${pts}</td>
-                <td>${rk}</td>
-              </tr>
-            `;
-          });
-          html += `
-              </tbody>
-            </table>
-          `;
-          container.innerHTML = html;
-        })
-        .catch(error => {
-          console.error("Error fetching all users:", error);
-          container.innerHTML = "<p>Error loading users.</p>";
-        });
-    }
-
-    // 4) Logout logic + confirm dialog
-    function showLogoutConfirm() {
-      document.getElementById("confirmBox").style.display = "block";
-      document.getElementById("overlay").style.display    = "block";
-    }
-    function hideLogoutConfirm() {
-      document.getElementById("confirmBox").style.display = "none";
-      document.getElementById("overlay").style.display    = "none";
-    }
-    function logout() {
-      auth.signOut().then(() => {
+    window.confirmLogout = function () {
+      signOut(auth).then(() => {
         window.location.href = "login.html";
-      }).catch(error => {
-        alert("Error logging out: " + error.message);
       });
-    }
+    };
 
-    // 5) Bottom-nav stubs
-    function goHome() {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-    function showOrders() {
-      alert("Orders section will appear here.");
-    }
-    function showRank() {
-      alert("Rank section will be added soon.");
-    }
+    window.cancelLogout = function () {
+      confirmLogoutDiv.style.display = "none";
+    };
+
+    window.toggleUserTable = async function () {
+      const tableDiv = document.getElementById("user-table");
+      if (tableDiv.style.display === "none") {
+        const querySnapshot = await getDocs(collection(db, "users"));
+        let tableHTML = "<table><thead><tr><th>Email</th><th>Points</th><th>Rank</th></tr></thead><tbody>";
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          tableHTML += `
+            <tr>
+              <td>${data.email || "N/A"}</td>
+              <td>${data.points || 0}</td>
+              <td>${data.rank || "N/A"}</td>
+            </tr>`;
+        });
+        tableHTML += "</tbody></table>";
+        tableDiv.innerHTML = tableHTML;
+        tableDiv.style.display = "block";
+      } else {
+        tableDiv.style.display = "none";
+      }
+    };
   </script>
 </body>
 </html>
