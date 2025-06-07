@@ -3,58 +3,128 @@
 <head>
   <meta charset="UTF-8">
   <title>Employee Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: url('landscape-background.jpg') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .form-container {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      color: #2d5f2e;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #message {
+      margin-top: 10px;
+      color: #cc0000;
+    }
+
+    a {
+      color: #4CAF50;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
-  <h2>Log In</h2>
-  <form id="loginForm">
-    <input type="email" id="email" placeholder="Email" required><br>
-    <input type="password" id="password" placeholder="Password" required><br>
-    <button type="submit">Log In</button>
-  </form>
+  <div class="form-container">
+    <h2>Employee Login</h2>
+    <form id="loginForm">
+      <input type="email" id="email" placeholder="Email" required><br>
+      <input type="password" id="password" placeholder="Password" required><br>
+      <button type="submit">Log In</button>
+    </form>
 
-  <p id="message" style="color: red;"></p>
-  <p>Don't have an account? <a href="signup.html">Sign up here</a></p>
+    <p id="message"></p>
+    <p>Don’t have an account? <a href="signup.html">Sign up here</a></p>
+  </div>
 
   <script>
-    // ─── YOUR FIREBASE CONFIG ───────────────────────────────────────────────────
-const firebaseConfig = {
-  apiKey: "AIzaSyCiMmudwxn4rpnfelcVtPdxMuqOnkDpV0c",
-  authDomain: "login-part2-a87ed.firebaseapp.com",
-  projectId: "login-part2-a87ed",
-  storageBucket: "login-part2-a87ed.firebasestorage.app",
-  messagingSenderId: "905793521152",
-  appId: "1:905793521152:web:87e6890d2a4c2cda54bae5",
-  measurementId: "G-6V6EQE0437"
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyCiMmudwxn4rpnfelcVtPdxMuqOnkDpV0c",
+      authDomain: "login-part2-a87ed.firebaseapp.com",
+      projectId: "login-part2-a87ed",
+      storageBucket: "login-part2-a87ed.firebasestorage.app",
+      messagingSenderId: "905793521152",
+      appId: "1:905793521152:web:87e6890d2a4c2cda54bae5",
+      measurementId: "G-6V6EQE0437"
+    };
 
-    // ─────────────────────────────────────────────────────────────────────────────
-
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
     document.getElementById("loginForm").addEventListener("submit", function(e) {
       e.preventDefault();
 
-      const email = document.getElementById("email").value;
+      const email    = document.getElementById("email").value;
       const password = document.getElementById("password").value;
-      const messageEl = document.getElementById("message");
+      const message  = document.getElementById("message");
 
-      // 1) Force LOCAL persistence so the login state survives page reloads
-      auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+      auth.signInWithEmailAndPassword(email, password)
         .then(() => {
-          // 2) Now actually sign in
-          return auth.signInWithEmailAndPassword(email, password);
-        })
-        .then(userCredential => {
-          // 3) On success, redirect straight to index.html
+          message.style.color = "green";
+          message.textContent = "✅ Login successful!";
           window.location.href = "index.html";
         })
         .catch(error => {
-          messageEl.textContent = "❌ Login failed: " + error.message;
+          message.style.color = "red";
+          message.textContent = "❌ Login failed: " + error.message;
+          console.error(error);
         });
     });
   </script>
