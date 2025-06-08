@@ -154,7 +154,7 @@
       .then(() => {
         // Now listen for auth state changes
         auth.onAuthStateChanged(user => {
-          if (!user) {
+          if (!user || user.isAnonymous) {
             window.location.href = "login.html";
           } else {
             // User is logged in — fetch profile info etc.
